@@ -2,78 +2,96 @@
 /// <reference path="../node_modules/@types/p5/constants.d.ts" />
 /// <reference path="../node_modules/@types/p5/literals.d.ts" />
 
-let X_PT_NUM = 15;
-let FRAME_HEIGHT = 300;
-let FRAME_WIDTH = 400;
-let UPPER_LIM = 0.3;
-let FADE_DIST = 300;
 
-let points = [];
+let animals = [];
 
-class myPoint{
-    constructor(x, y) {
+class Animal{
+    constructor(x, y, r) {
         this.x = x;
         this.y = y;
-        this.vec = createVector(x, y);
-        // this.heading = random(UPPER_LIM, 1) * (random() > 0.5 ? 1 : -1);
-        // this.heading = random(0, UPPER_LIM) * (random() > 0.5 ? 1 : -1);
-        this.heading = random(UPPER_LIM, 1) * 1;
+        this.r = r;
+
+        this.eye_size = r/1.5;
+        this.eye_size = max(this.eye_size, 8);
+        this.eye1_x = this.x - this.r/2.5;
+        this.eye2_x = this.x + this.r/2.5;
+        this.eye1_y = this.y - this.r/2.5;
+        this.eye2_y = this.y - this.r/2.5;
     }
-    drawPoint() {
+    draw_eyes() {
+        // draw eye frame
+        noFill();
+        circle(this.eye1_x, this.eye1_y, this.eye_size);
+        circle(this.eye2_x, this.eye2_y, this.eye_size);
+
+        // draw eye pupil
+        let mouse_vec = createVector(mouseX, mouseY);
+        let vec_from_eye1 = mouse_vec.copy().sub(createVector(this.eye1_x, this.eye1_y));
+        vec_from_eye1.setMag(this.eye_size/4)
+        let vec_from_eye2 = mouse_vec.copy().sub(createVector(this.eye2_x, this.eye2_y));
+        vec_from_eye2.setMag(this.eye_size/4)
+
         fill(200);
-        strokeWeight(0);
-        circle(this.x, this.y, 4);
+        circle(this.eye1_x + vec_from_eye1.x, this.eye1_y + vec_from_eye1.y, this.eye_size/2);
+        circle(this.eye2_x + vec_from_eye2.x, this.eye2_y + vec_from_eye2.y, this.eye_size/2);
     }
-    drawCircleToMouse() {
-        let mouse_vec = createVector(mouseX, mouseY);
-        let vec_from_this = mouse_vec.sub(this.vec);
-        let mid_pt = this.vec.copy().add(vec_from_this.copy().mult(0.5));
-        let distance = vec_from_this.mag();
-        let start_angle = vec_from_this.heading();
-        let end_angle = start_angle+PI;
 
-        // noFill(); stroke(200, 100); strokeWeight(1);
-        noFill(); stroke(200, map(distance,0,FADE_DIST,255,0)); strokeWeight(1);
-        arc(mid_pt.x, mid_pt.y, distance, distance, start_angle, end_angle)
-    }
-    
-    drawPerpendicularToMouse() {
-        let mouse_vec = createVector(mouseX, mouseY);
-        let vec_from_this = mouse_vec.copy().sub(this.vec);
-        let distance = vec_from_this.mag();
-        let start_angle = vec_from_this.heading();
+    draw_mouth() {
 
-        let ver_pt = vec_from_this.copy().mult(0.5).setHeading(start_angle+PI*this.heading)
-        ver_pt.add(this.vec).add(vec_from_this.copy().mult(0.5));
-
-        noFill(); stroke(200, map(distance,0,FADE_DIST,255,0)); strokeWeight(1);
-        line(this.x, this.y, ver_pt.x, ver_pt.y)
-        line(mouse_vec.x, mouse_vec.y, ver_pt.x, ver_pt.y)
     }
 
     update() {
-        this.drawPoint();
-        this.drawPerpendicularToMouse();
-        // this.drawCircleToMouse()
+        stroke(100);
+        fill(75);
+        circle(this.x, this.y, this.r*2);
+
+        this.draw_eyes();
     }
 }
 
 function setup() {
     createCanvas(windowWidth, windowHeight);
     background(70);
-    w_offset = (width-FRAME_WIDTH)/2
-    h_offset = (height-FRAME_HEIGHT)/2
-    for (x = 0; x < FRAME_WIDTH; x += FRAME_WIDTH/X_PT_NUM){
-        for (y = 0; y < FRAME_HEIGHT; y += FRAME_WIDTH/X_PT_NUM) {
-            points.push(new myPoint(x+w_offset, y+h_offset));
-            // points.push(new myPoint(random(w_offset, w_offset+FRAME_WIDTH), random(h_offset, h_offset+FRAME_HEIGHT)))
-            // points.push(new myPoint(randomGaussian(w_offset+0.5*FRAME_WIDTH, 0.5*FRAME_WIDTH), randomGaussian(h_offset+0.5*FRAME_HEIGHT, 0.5*FRAME_HEIGHT)))
+    let x_padding = 2;
+    let y_padding = 25;
+    let x_frame_padding = 20;
+    let y_frame_padding = 20;
+    let radius_min = 10;
+    let radius_max = 30;
+    let x = x_frame_padding;
+    let y = y_frame_padding + radius_max;
+
+    for (let i = 0; i < 300; i++) {
+        r = random(radius_min, radius_max);
+        if (x + 2 * radius_max > windowWidth - x_frame_padding) {
+            r = random(radius_min, radius_max);
         }
+        if (x + 2 * r > windowWidth - x_frame_padding) {
+            x = x_frame_padding + random(radius_max);
+            y += y_padding;
+        }
+        if (y + 0 * radius_max > windowHeight - y_frame_padding) {
+            break;
+        }
+        animals.push(new Animal(x + r, y, r));
+        x += r * 2 + x_padding;
     }
 }
 
 function draw() {
     background(70)
-    points.forEach(x => x.update());
+    animals.forEach(x => x.update());
+    stroke(200);
+    fill(70);
+
+
+
+    let x_frame_padding = 20;
+    let y_frame_padding = 20;
+
+    let x = x_frame_padding;
+    let y = y_frame_padding;
+    noFill();
+    rect(x_frame_padding, y_frame_padding, windowWidth - 2 * x_frame_padding, windowHeight - 2 * y_frame_padding)
 }
 
