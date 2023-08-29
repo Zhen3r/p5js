@@ -25,7 +25,15 @@ class Animal{
         circle(this.eye2_x, this.eye2_y, this.eye_size);
 
         // draw eye pupil
+        let max_watch_dist = 200;
         let mouse_vec = createVector(mouseX, mouseY);
+        if (mouse_vec.dist(createVector(this.eye1_x, this.eye1_y)) > max_watch_dist) {
+            let v1 = createVector(this.eye1_x, this.eye1_y)
+            let v2 = createVector(this.eye2_x, this.eye2_y)
+            // set mouse_vec to the middle of the two eyes
+            mouse_vec = v1.copy().add(v2).mult(0.5);
+        }
+
         let vec_from_eye1 = mouse_vec.copy().sub(createVector(this.eye1_x, this.eye1_y));
         vec_from_eye1.setMag(this.eye_size/4)
         let vec_from_eye2 = mouse_vec.copy().sub(createVector(this.eye2_x, this.eye2_y));
@@ -54,8 +62,8 @@ function setup() {
     background(70);
     let x_padding = 2;
     let y_padding = 25;
-    let x_frame_padding = 20;
-    let y_frame_padding = 20;
+    let x_frame_padding = 50;
+    let y_frame_padding = 50;
     let radius_min = 10;
     let radius_max = 30;
     let x = x_frame_padding;
@@ -91,7 +99,7 @@ function draw() {
 
     let x = x_frame_padding;
     let y = y_frame_padding;
-    noFill();
-    rect(x_frame_padding, y_frame_padding, windowWidth - 2 * x_frame_padding, windowHeight - 2 * y_frame_padding)
+    // noFill();
+    // rect(x_frame_padding, y_frame_padding, windowWidth - 2 * x_frame_padding, windowHeight - 2 * y_frame_padding)
 }
 
