@@ -1,9 +1,11 @@
 /// <reference path="../node_modules/@types/p5/global.d.ts" />
 /// <reference path="../node_modules/@types/p5/constants.d.ts" />
 /// <reference path="../node_modules/@types/p5/literals.d.ts" />
+/// <reference path="./p5.scribble.js" />
 
-
+let frame_rate = 60;
 let animals = [];
+let scribble = new Scribble();
 
 class Animal{
     constructor(x, y, r) {
@@ -11,54 +13,113 @@ class Animal{
         this.y = y;
         this.r = r;
 
-        this.eye_size = r/1.5;
-        this.eye_size = max(this.eye_size, 8);
+        this.eye_size = r / 1.5;
+        this.eye_size = max(this.eye_size, 8); // eye size should be at least 8
+        this.max_watch_dist = 400;
+        this.max_eye_move_dist = this.eye_size/2;
+
         this.eye1_x = this.x - this.r/2.5;
         this.eye2_x = this.x + this.r/2.5;
         this.eye1_y = this.y - this.r/2.5;
         this.eye2_y = this.y - this.r/2.5;
+
+        this.mouth_x = this.x;
+        this.mouth_y = this.y + this.r/5;
+        this.mouth_max_watch_dist = 100;
+        this.mouth_state = 0;
+        this.mouth_width = this.r/3;
+        this.mouth_height_max = this.r/2;
+        this.mouth_height_min = this.r/10;
+        this.mouth_height_joggle_factor_min = 1;
+        this.mouth_height_joggle_factor_max = 2;
+        this.mouth_joggle_freq = 25;
+        this.mouth_joggle_per_frame = frame_rate / this.mouth_joggle_freq;
+
+        this.random_seed_face = random(10000);
+        this.random_seed_eye1 = random(10000);
+        this.random_seed_eye2 = random(10000);
+        this.random_seed_mouse = random(10000);
+
     }
+
     draw_eyes() {
         // draw eye frame
-        noFill();
-        circle(this.eye1_x, this.eye1_y, this.eye_size);
-        circle(this.eye2_x, this.eye2_y, this.eye_size);
+        // noFill();
+        // stroke(80);
+        // circle(this.eye1_x, this.eye1_y, this.eye_size);
+        // circle(this.eye2_x, this.eye2_y, this.eye_size);
 
         // draw eye pupil
-        let max_watch_dist = 200;
         let mouse_vec = createVector(mouseX, mouseY);
-        if (mouse_vec.dist(createVector(this.eye1_x, this.eye1_y)) > max_watch_dist) {
-            let v1 = createVector(this.eye1_x, this.eye1_y)
-            let v2 = createVector(this.eye2_x, this.eye2_y)
-            // set mouse_vec to the middle of the two eyes
-            mouse_vec = v1.copy().add(v2).mult(0.5);
-        }
 
-        let vec_from_eye1 = mouse_vec.copy().sub(createVector(this.eye1_x, this.eye1_y));
-        vec_from_eye1.setMag(this.eye_size/4)
-        let vec_from_eye2 = mouse_vec.copy().sub(createVector(this.eye2_x, this.eye2_y));
-        vec_from_eye2.setMag(this.eye_size/4)
+        let v1 = createVector(this.eye1_x, this.eye1_y)
+        let eye1_to_mouse = mouse_vec.copy().sub(v1);
+        let eye1_to_mouse_dist = eye1_to_mouse.mag();
+        let eye1_move_dist = map(eye1_to_mouse_dist, this.max_watch_dist, 0, 0, this.max_eye_move_dist, true);
+        let eye1_move_vec = eye1_to_mouse.copy().setMag(eye1_move_dist);
+        let eye1_pupil_pos = v1.copy().add(eye1_move_vec);
 
-        fill(200);
-        circle(this.eye1_x + vec_from_eye1.x, this.eye1_y + vec_from_eye1.y, this.eye_size/2);
-        circle(this.eye2_x + vec_from_eye2.x, this.eye2_y + vec_from_eye2.y, this.eye_size/2);
+        let v2 = createVector(this.eye2_x, this.eye2_y)
+        let eye2_to_mouse = mouse_vec.copy().sub(v2);
+        let eye2_to_mouse_dist = eye2_to_mouse.mag();
+        let eye2_move_dist = map(eye2_to_mouse_dist, this.max_watch_dist, 0, 0, this.max_eye_move_dist, true);
+        let eye2_move_vec = eye2_to_mouse.copy().setMag(eye2_move_dist);
+        let eye2_pupil_pos = v2.copy().add(eye2_move_vec);
+
+        noFill();
+        stroke(100);
+        fill(90);
+        // circle(eye1_pupil_pos.x, eye1_pupil_pos.y, this.eye_size/2);
+        // circle(eye2_pupil_pos.x, eye2_pupil_pos.y, this.eye_size/2);
+
+        randomSeed(this.random_seed_eye1)
+        scribble.scribbleEllipse(eye1_pupil_pos.x, eye1_pupil_pos.y, this.eye_size/2, this.eye_size/3)
+
+        randomSeed(this.random_seed_eye2)
+        scribble.scribbleEllipse(eye2_pupil_pos.x, eye2_pupil_pos.y, this.eye_size/2, this.eye_size/3)
     }
 
     draw_mouth() {
+        noFill();
+        stroke(100);
+        let mouse_vec = createVector(mouseX, mouseY);
+        let mouth_to_mouse = mouse_vec.copy().sub(createVector(this.mouth_x, this.mouth_y));
+        let mouth_to_mouse_dist = mouth_to_mouse.mag();
 
+        let mouth_height = map(mouth_to_mouse_dist, this.mouth_max_watch_dist, 0, this.mouth_height_min, this.mouth_height_max, true);
+        let joggle_factor = map(mouth_to_mouse_dist, this.mouth_max_watch_dist, 0, this.mouth_height_joggle_factor_min, this.mouth_height_joggle_factor_max, true);
+
+        if (this.mouth_state == 1) {
+            this.mouth_state = (ceil(frameCount / this.mouth_joggle_per_frame)) % 2;
+            // ellipse(this.mouth_x, this.mouth_y, this.mouth_width, mouth_height);
+            randomSeed(this.random_seed_mouse)
+            scribble.scribbleEllipse(this.mouth_x, this.mouth_y, this.mouth_width, mouth_height)
+        } else {
+            this.mouth_state = (ceil(frameCount / this.mouth_joggle_per_frame)) % 2;
+            // ellipse(this.mouth_x, this.mouth_y, this.mouth_width, mouth_height * joggle_factor);
+            randomSeed(this.random_seed_mouse)
+            scribble.scribbleEllipse(this.mouth_x, this.mouth_y, this.mouth_width, mouth_height * joggle_factor)
+        }
+    }
+    draw_body() {
+        stroke(100);
+        fill(75);
+        // circle(this.x, this.y, this.r*2);
+        randomSeed(this.random_seed_face)
+        scribble.scribbleEllipse(this.x, this.y, this.r*2, this.r*2)
     }
 
     update() {
-        stroke(100);
-        fill(75);
-        circle(this.x, this.y, this.r*2);
+        this.draw_body();
 
         this.draw_eyes();
+        this.draw_mouth();
     }
 }
 
 function setup() {
     createCanvas(windowWidth, windowHeight);
+    frameRate(frame_rate);
     background(70);
     let x_padding = 2;
     let y_padding = 25;
@@ -91,15 +152,5 @@ function draw() {
     animals.forEach(x => x.update());
     stroke(200);
     fill(70);
-
-
-
-    let x_frame_padding = 20;
-    let y_frame_padding = 20;
-
-    let x = x_frame_padding;
-    let y = y_frame_padding;
-    // noFill();
-    // rect(x_frame_padding, y_frame_padding, windowWidth - 2 * x_frame_padding, windowHeight - 2 * y_frame_padding)
 }
 
