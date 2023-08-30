@@ -13,8 +13,8 @@ class Animal{
         this.y = y;
         this.r = r;
 
-        this.eye_size = r / 1.5;
-        this.eye_size = max(this.eye_size, 8); // eye size should be at least 8
+        this.eye_size = r / 3;
+        this.eye_size = max(this.eye_size, 4); // eye size should be at least 8
         this.max_watch_dist = 400;
         this.max_eye_move_dist = this.eye_size/2;
 
@@ -34,6 +34,12 @@ class Animal{
         this.mouth_height_joggle_factor_max = 2;
         this.mouth_joggle_freq = 25;
         this.mouth_joggle_per_frame = frame_rate / this.mouth_joggle_freq;
+
+        this.ear1_x = this.x - this.r/1.5;
+        this.ear2_x = this.x + this.r/1.5;
+        this.ear1_y = this.y - this.r/1.3;
+        this.ear2_y = this.y - this.r/1.3;
+        this.ear_size = this.r/2;
 
         this.random_seed_face = random(10000);
         this.random_seed_eye1 = random(10000);
@@ -72,11 +78,14 @@ class Animal{
         // circle(eye1_pupil_pos.x, eye1_pupil_pos.y, this.eye_size/2);
         // circle(eye2_pupil_pos.x, eye2_pupil_pos.y, this.eye_size/2);
 
+        let eye_size = map(eye1_to_mouse_dist, 0, this.mouth_max_watch_dist, this.eye_size*1.5, this.eye_size, true);
+
+
         randomSeed(this.random_seed_eye1)
-        scribble.scribbleEllipse(eye1_pupil_pos.x, eye1_pupil_pos.y, this.eye_size/2, this.eye_size/3)
+        scribble.scribbleEllipse(eye1_pupil_pos.x, eye1_pupil_pos.y, eye_size/2, eye_size/2)
 
         randomSeed(this.random_seed_eye2)
-        scribble.scribbleEllipse(eye2_pupil_pos.x, eye2_pupil_pos.y, this.eye_size/2, this.eye_size/3)
+        scribble.scribbleEllipse(eye2_pupil_pos.x, eye2_pupil_pos.y, eye_size/2, eye_size/2)
     }
 
     draw_mouth() {
@@ -109,9 +118,18 @@ class Animal{
         scribble.scribbleEllipse(this.x, this.y, this.r*2, this.r*2)
     }
 
-    update() {
-        this.draw_body();
+    draw_ears() {
+        stroke(100);
+        fill(75);
+        randomSeed(this.random_seed_face)
+        scribble.scribbleEllipse(this.ear1_x, this.ear1_y, this.ear_size, this.ear_size)
+        scribble.scribbleEllipse(this.ear2_x, this.ear2_y, this.ear_size, this.ear_size)
 
+    }
+
+    update() {
+        this.draw_ears();
+        this.draw_body();
         this.draw_eyes();
         this.draw_mouth();
     }
@@ -121,16 +139,24 @@ function setup() {
     createCanvas(windowWidth, windowHeight);
     frameRate(frame_rate);
     background(70);
-    let x_padding = 2;
-    let y_padding = 25;
-    let x_frame_padding = 50;
-    let y_frame_padding = 50;
-    let radius_min = 10;
-    let radius_max = 30;
+    // let x_padding = 2;
+    // let y_padding = 25;
+    // let x_frame_padding = 50;
+    // let y_frame_padding = 50;
+    // let radius_min = 10;
+    // let radius_max = 30;
+
+    let radius_min = windowWidth / 80;
+    let radius_max = windowWidth / 30;
+    let x_padding = map(windowWidth, 0, 1920, 2, 5, true);
+    let y_padding = radius_max/0.8;
+    let x_frame_padding = windowWidth / 8;
+    let y_frame_padding = (windowHeight - y_padding*10)/2
+
     let x = x_frame_padding;
     let y = y_frame_padding + radius_max;
 
-    for (let i = 0; i < 300; i++) {
+    for (let i = 0; i < 100; i++) {
         r = random(radius_min, radius_max);
         if (x + 2 * radius_max > windowWidth - x_frame_padding) {
             r = random(radius_min, radius_max);
@@ -152,5 +178,11 @@ function draw() {
     animals.forEach(x => x.update());
     stroke(200);
     fill(70);
+
+    // print frame rate
+    textSize(10);
+    fill(0);
+    noStroke();
+    text("Frame Rate: " + frameRate().toFixed(2), 10,10);
 }
 
