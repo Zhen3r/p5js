@@ -1,6 +1,8 @@
-/// <reference path="../node_modules/@types/p5/global.d.ts" />
-/// <reference path="../node_modules/@types/p5/constants.d.ts" />
-/// <reference path="../node_modules/@types/p5/literals.d.ts" />
+//// <reference path="../node_modules/@types/p5/global.d.ts" />
+//// <reference path="../node_modules/@types/p5/constants.d.ts" />
+//// <reference path="../node_modules/@types/p5/literals.d.ts" />
+
+/// <reference path="./p5.js" />
 /// <reference path="./p5.scribble.js" />
 
 let frame_rate = 60;
@@ -8,6 +10,8 @@ let animals = [];
 let t;
 let scribble = new Scribble();
 let bg_color = 200;
+let canvasWidth = 600;
+let canvasHeight = 800;
 
 class Animal{
     constructor(x, y, r, like_letter) {
@@ -172,7 +176,10 @@ class Text {
 
 
 function setup() {
-    createCanvas(windowWidth, windowHeight);
+    // var canvas = createCanvas();
+    let canvas = createCanvas(canvasWidth, canvasHeight);
+    canvas.parent("cont");
+
     frameRate(frame_rate);
     background(bg_color);
     // let x_padding = 2;
@@ -182,12 +189,12 @@ function setup() {
     // let radius_min = 10;
     // let radius_max = 30;
 
-    let radius_min = windowWidth / 100;
-    let radius_max = windowWidth / 30;
-    let x_padding = map(windowWidth, 0, 1920, 2, 5, true);
+    let radius_min = canvasWidth / 100;
+    let radius_max = canvasWidth / 30;
+    let x_padding = map(canvasWidth, 0, 1920, 2, 5, true);
     let y_padding = radius_max/0.8;
-    let x_frame_padding = windowWidth / 8;
-    let y_frame_padding = (windowHeight - y_padding*10)/2
+    let x_frame_padding = canvasWidth / 8;
+    let y_frame_padding = (canvasHeight - y_padding*10)/2
 
     let x = x_frame_padding + radius_max + 20;
     let y = y_frame_padding + radius_max;
@@ -196,14 +203,14 @@ function setup() {
 
     for (let i = 0; i < 100; i++) {
         r = random(radius_min, radius_max);
-        if (x + 2 * radius_max > windowWidth - x_frame_padding) {
+        if (x + 2 * radius_max > canvasWidth - x_frame_padding) {
             r = random(radius_min, radius_max);
         }
-        if (x + 2 * r > windowWidth - x_frame_padding) {
+        if (x + 2 * r > canvasWidth - x_frame_padding) {
             x = x_frame_padding + random(radius_max);
             y += y_padding;
         }
-        if (y + 0 * radius_max > windowHeight - y_frame_padding) {
+        if (y + 0 * radius_max > canvasHeight - y_frame_padding) {
             break;
         }
         let like_letter = map(i-2, 0, 5, 1, 0, true);
@@ -226,7 +233,6 @@ function draw() {
     animals.forEach(x => x.update());
     stroke(200);
     fill(bg_color);
-
 
     // print frame rate
     textSize(10);
