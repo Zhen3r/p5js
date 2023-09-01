@@ -5,10 +5,12 @@
 
 let frame_rate = 60;
 let animals = [];
+let t;
 let scribble = new Scribble();
+let bg_color = 200;
 
 class Animal{
-    constructor(x, y, r) {
+    constructor(x, y, r, like_letter) {
         this.x = x;
         this.y = y;
         this.r = r;
@@ -46,6 +48,17 @@ class Animal{
         this.random_seed_eye2 = random(10000);
         this.random_seed_mouse = random(10000);
 
+        this.like_letter = like_letter;
+        colorMode(HSL, 360, 100, 100)
+        // this.main_color = color(random(50, 100), 40, 40);
+        this.main_color = color(random(50, 100), 0, 40);
+        colorMode(RGB)
+        this.palette = {
+            ears: lerpColor(color("#646464FF"), color("#64646400"), this.like_letter),
+            eyes: lerpColor(this.main_color, color("#64646400"), this.like_letter),
+            mouse: lerpColor(color("#646464FF"), color("#64646400"), this.like_letter),
+        }
+        this.stroke_weight = map(this.like_letter, 0, 1, 2, 3, true);
     }
 
     draw_eyes() {
@@ -72,14 +85,13 @@ class Animal{
         let eye2_move_vec = eye2_to_mouse.copy().setMag(eye2_move_dist);
         let eye2_pupil_pos = v2.copy().add(eye2_move_vec);
 
-        noFill();
-        stroke(100);
-        fill(90);
-        // circle(eye1_pupil_pos.x, eye1_pupil_pos.y, this.eye_size/2);
-        // circle(eye2_pupil_pos.x, eye2_pupil_pos.y, this.eye_size/2);
+        stroke(this.palette.eyes);
+        strokeWeight(this.stroke_weight*0.6);
+        noFill()
+        let eye_size = map(eye1_to_mouse_dist, 0, this.mouth_max_watch_dist, this.eye_size*2, this.eye_size, true);
 
-        let eye_size = map(eye1_to_mouse_dist, 0, this.mouth_max_watch_dist, this.eye_size*1.5, this.eye_size, true);
-
+        // circle(eye1_pupil_pos.x, eye1_pupil_pos.y, eye_size/2);
+        // circle(eye2_pupil_pos.x, eye2_pupil_pos.y, eye_size/2);
 
         randomSeed(this.random_seed_eye1)
         scribble.scribbleEllipse(eye1_pupil_pos.x, eye1_pupil_pos.y, eye_size/2, eye_size/2)
@@ -90,7 +102,9 @@ class Animal{
 
     draw_mouth() {
         noFill();
-        stroke(100);
+        strokeWeight(this.stroke_weight);
+        // stroke(100);
+        stroke(this.palette.mouse);
         let mouse_vec = createVector(mouseX, mouseY);
         let mouth_to_mouse = mouse_vec.copy().sub(createVector(this.mouth_x, this.mouth_y));
         let mouth_to_mouse_dist = mouth_to_mouse.mag();
@@ -111,16 +125,18 @@ class Animal{
         }
     }
     draw_body() {
+        strokeWeight(this.stroke_weight);
         stroke(100);
-        fill(75);
+        fill(bg_color);
         // circle(this.x, this.y, this.r*2);
         randomSeed(this.random_seed_face)
         scribble.scribbleEllipse(this.x, this.y, this.r*2, this.r*2)
     }
 
     draw_ears() {
-        stroke(100);
-        fill(75);
+        strokeWeight(this.stroke_weight);
+        stroke(this.palette.ears);
+        fill(bg_color);
         randomSeed(this.random_seed_face)
         scribble.scribbleEllipse(this.ear1_x, this.ear1_y, this.ear_size, this.ear_size)
         scribble.scribbleEllipse(this.ear2_x, this.ear2_y, this.ear_size, this.ear_size)
@@ -135,10 +151,30 @@ class Animal{
     }
 }
 
+
+class Text {
+    constructor(x, y, text, font_size) {
+        this.x = x;
+        this.y = y;
+        this.text = text;
+        this.font_size = font_size;
+    }
+
+    update() {
+        textLeading(this.font_size/1.5);
+        textSize(this.font_size);
+        fill(100);
+        noStroke();
+        text(this.text, this.x, this.y);
+        
+    }
+}
+
+
 function setup() {
     createCanvas(windowWidth, windowHeight);
     frameRate(frame_rate);
-    background(70);
+    background(bg_color);
     // let x_padding = 2;
     // let y_padding = 25;
     // let x_frame_padding = 50;
@@ -146,15 +182,17 @@ function setup() {
     // let radius_min = 10;
     // let radius_max = 30;
 
-    let radius_min = windowWidth / 80;
+    let radius_min = windowWidth / 100;
     let radius_max = windowWidth / 30;
     let x_padding = map(windowWidth, 0, 1920, 2, 5, true);
     let y_padding = radius_max/0.8;
     let x_frame_padding = windowWidth / 8;
     let y_frame_padding = (windowHeight - y_padding*10)/2
 
-    let x = x_frame_padding;
+    let x = x_frame_padding + radius_max + 20;
     let y = y_frame_padding + radius_max;
+
+    let font_size = 45;
 
     for (let i = 0; i < 100; i++) {
         r = random(radius_min, radius_max);
@@ -168,16 +206,27 @@ function setup() {
         if (y + 0 * radius_max > windowHeight - y_frame_padding) {
             break;
         }
-        animals.push(new Animal(x + r, y, r));
-        x += r * 2 + x_padding;
+        let like_letter = map(i-2, 0, 5, 1, 0, true);
+        r = map(like_letter, 0.3, 1, r, font_size/2.8, true);
+        animals.push(new Animal(x + r, y, r, like_letter));
+
+        let x_padding_tmp = map(like_letter, 0, 1, x_padding, 13, true);
+        x += r * 2 + x_padding_tmp;
     }
+
+    t = new Text(
+        x_frame_padding + radius_min,
+        y_frame_padding + font_size / 2.5, "S O F T\nZ", font_size = font_size
+    );
 }
 
 function draw() {
-    background(70)
+    background(bg_color)
+    t.update();
     animals.forEach(x => x.update());
     stroke(200);
-    fill(70);
+    fill(bg_color);
+
 
     // print frame rate
     textSize(10);
