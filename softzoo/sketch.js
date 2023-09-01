@@ -237,9 +237,9 @@ function draw() {
     fill(bg_color);
 
     // print frame rate
-    textSize(10);
-    fill(0);
-    noStroke();
-    text("Frame Rate: " + frameRate().toFixed(2), 10,10);
+    // textSize(10);
+    // fill(0);
+    // noStroke();
+    // text("Frame Rate: " + frameRate().toFixed(2), 10,10);
 }
 
