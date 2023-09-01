@@ -10,7 +10,7 @@ let animals = [];
 let t;
 let scribble = new Scribble();
 let bg_color = 200;
-let canvasWidth = 600;
+let canvasWidth = 800;
 let canvasHeight = 800;
 
 class Animal{
@@ -133,8 +133,10 @@ class Animal{
         stroke(100);
         fill(bg_color);
         // circle(this.x, this.y, this.r*2);
-        randomSeed(this.random_seed_face)
-        scribble.scribbleEllipse(this.x, this.y, this.r*2, this.r*2)
+        randomSeed(this.random_seed_face);
+        scribble.scribbleEllipse(this.x, this.y, this.r*2, this.r*2);
+        noStroke();
+        // circle(this.x, this.y+40, this.r*2)
     }
 
     draw_ears() {
@@ -190,18 +192,18 @@ function setup() {
     // let radius_max = 30;
 
     let radius_min = canvasWidth / 100;
-    let radius_max = canvasWidth / 30;
+    let radius_max = canvasWidth / 15;
     let x_padding = map(canvasWidth, 0, 1920, 2, 5, true);
     let y_padding = radius_max/0.8;
-    let x_frame_padding = canvasWidth / 8;
-    let y_frame_padding = (canvasHeight - y_padding*10)/2
+    let x_frame_padding = canvasWidth / 20;
+    let y_frame_padding = (canvasHeight - y_padding*6)/2
 
     let x = x_frame_padding + radius_max + 20;
     let y = y_frame_padding + radius_max;
 
     let font_size = 45;
 
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 200; i++) {
         r = random(radius_min, radius_max);
         if (x + 2 * radius_max > canvasWidth - x_frame_padding) {
             r = random(radius_min, radius_max);
@@ -213,7 +215,7 @@ function setup() {
         if (y + 0 * radius_max > canvasHeight - y_frame_padding) {
             break;
         }
-        let like_letter = map(i-2, 0, 5, 1, 0, true);
+        let like_letter = map(i-5, 0, 15, 1, 0, true);
         r = map(like_letter, 0.3, 1, r, font_size/2.8, true);
         animals.push(new Animal(x + r, y, r, like_letter));
 
@@ -222,8 +224,8 @@ function setup() {
     }
 
     t = new Text(
-        x_frame_padding + radius_min,
-        y_frame_padding + font_size / 2.5, "S O F T\nZ", font_size = font_size
+        x_frame_padding + 35,
+        y_frame_padding + 40 , "S O F T\nZ", font_size = font_size
     );
 }
 
